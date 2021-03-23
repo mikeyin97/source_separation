@@ -1,5 +1,8 @@
 import math
 import numpy as np 
+import matplotlib.pyplot as plt
+import tqdm
+from .signals import *
 
 def fibonacci_sphere(samples=1):
     points = []
@@ -13,10 +16,9 @@ def fibonacci_sphere(samples=1):
         points.append((x, y, z))
     return points
 
-
 def lookup(data, phase_diffs, frames):
     curr_locs = []
-    for f in tqdm(range(0, data.shape[1] - frames, frames//4)):
+    for f in tqdm.tqdm(range(0, data.shape[1] - frames, frames//4)):
         frame_data = data[:, f:f+(frames)]
         phase_diff = []
         x_corrs = []
@@ -44,3 +46,16 @@ def lookup(data, phase_diffs, frames):
                 curr_loc = loc         
         curr_locs.append(curr_loc)
     return curr_locs
+
+if __name__ == "__main__":
+    pts = fibonacci_sphere(360)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    for i in pts:
+        ax.scatter(i[0], i[1], i[2])
+
+    ax.set_xlabel('X Label')
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
+
+    plt.show()
