@@ -85,27 +85,27 @@ def final_res_to_wavs(source, fname):
     
 
 if __name__ == "__main__":
-    folder = "./test/talking/3/"
-    # folder = "./res1/src2/"
+    # folder = "./test/talking/2/"
+    folder = "./res2/src1/"
     mics, sample_freq = load_from_path(folder)
     data = vstack_mics(mics)
     
     pts = fibonacci_sphere(360)
     phase_diffs = get_phase_diffs(pts, mic_locs, sample_freq)
 
-    frames = 2**10
+    frames = 2**8
    
     # locs1 = lookup(data, phase_diffs, frames)
     # plot_with_mics(locs1, mic_locs_list, count = True)
 
-    # locs2 = solve_implicit_function(data, 2**8, sample_freq, mic_locs_list)
-    # print(sum(locs2) / len(locs2))
-    # plot_with_mics(locs2, mic_locs_list)
+    locs2 = solve_implicit_function(data, frames, sample_freq, mic_locs_list)
+    print(sum(locs2) / len(locs2))
+    plot_with_mics(locs2, mic_locs_list)
     
-    W, A, final_data, source1, source2 = grad_descent_all_frames(data, frames)
-    mic_to_wavs(source1, "./res1/src1")
-    mic_to_wavs(source2, "./res1/src2")
-    final_res_to_wavs(final_data, "./res1/")
+    # W, A, final_data, source1, source2 = grad_descent_all_frames(data, frames)
+    # mic_to_wavs(source1, "./res2/src1")
+    # mic_to_wavs(source2, "./res2/src2")
+    # final_res_to_wavs(final_data, "./res2/")
 
     
     

@@ -35,7 +35,7 @@ if __name__ == "__main__":
     reg = 0.01
     alpha = 0.05
     grad = hyperbola_gradient(x, y, np.array([1.,2.]), np.array([1.,0.]), 1) + hyperbola_gradient(x, y, np.array([1.,2.]), np.array([0.,0.]), 1.0)
-    while np.linalg.norm(grad + reg * curr_guess) >= 0.01 and count <= 3000:
+    while np.linalg.norm(grad + reg * curr_guess) >= 0.03 and count <= 3000:
         x = curr_guess[0]
         y = curr_guess[1]
         grad = hyperbola_gradient(x, y, np.array([1.,2.]), np.array([1.,0.]), 1) + hyperbola_gradient(x, y, np.array([1.,2.]), np.array([0.,0.]), 1)

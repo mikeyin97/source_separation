@@ -13,11 +13,12 @@ def find_delta(signal1, signal2): # signal1 takes place after if +ve
     nsamples = signal1.shape[0]
     xcorr = signaltools.correlate(signal1, signal2)
     dt = np.arange(1-nsamples, nsamples)
-    recovered_time_shift = dt[xcorr.argmax()]
+    filtered_xcorr = xcorr[len(xcorr)//2 - 14 : len(xcorr)//2 + 14]
+    recovered_time_shift = dt[len(xcorr)//2 - 14 + filtered_xcorr.argmax()]
     return recovered_time_shift
 
 def get_tdoa_phase(loc1, loc2, u, freq, c): # loc1 takes place after if +ve
-    return ((np.linalg.norm(u - loc1) / c) - (np.linalg.norm(u - loc2) / c))*freq
+    return ((np.linalg.norm(u - loc1) / c) - (np.linalg.norm(u - loc2) / c)) * freq
 
 def interpolate(l, idx):
     flr = int(np.floor(idx))
@@ -46,7 +47,7 @@ if __name__ == "__main__":
 
     time = np.arange(0, 10, 0.1)
     signal2 = np.sin(time/5 * np.pi)
-    signal1 = np.roll(signal2, 5)
+    signal1 = np.roll(signal2, -1)
     print(find_delta(signal1, signal2))
     plt.plot(time, signal1, c = "blue")
     plt.plot(time, signal2, c = "red")
