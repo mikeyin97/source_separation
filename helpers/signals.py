@@ -3,14 +3,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def find_delta_with_xcorr(signal1, signal2):
+    signal1 -= signal1.mean()
+    signal2 -= signal2.mean()
+    signal1 /= signal1.std()
+    signal2 /= signal2.std()
     nsamples = signal1.shape[0]
+
     xcorr = signaltools.correlate(signal1, signal2)
     dt = np.arange(1-nsamples, nsamples)
-    recovered_time_shift = dt[xcorr.argmax()]
-    return xcorr, recovered_time_shift
+    filtered_xcorr = xcorr[len(xcorr)//2 - 14 : len(xcorr)//2 + 14]
+    recovered_time_shift = dt[len(xcorr)//2 - 14 + filtered_xcorr.argmax()]
+    return filtered_xcorr, recovered_time_shift
 
 def find_delta(signal1, signal2): # signal1 takes place after if +ve
+    signal1 -= signal1.mean()
+    signal2 -= signal2.mean()
+    signal1 /= signal1.std()
+    signal2 /= signal2.std()
     nsamples = signal1.shape[0]
+
     xcorr = signaltools.correlate(signal1, signal2)
     dt = np.arange(1-nsamples, nsamples)
     filtered_xcorr = xcorr[len(xcorr)//2 - 14 : len(xcorr)//2 + 14]
@@ -41,14 +52,23 @@ def get_phase_diffs(pts, mic_locs, sample_freq):
     return phase_diffs
 
 if __name__ == "__main__":
-    pts = [np.array([0,0,1])]
-    mic_locs = {1:np.array([0,0,0]), 2:np.array([0.08,0,0]), 3:np.array([-0.08,0,0]), 4:np.array([0,-0.08,0])}
-    print(get_phase_diffs(pts, mic_locs, 44100))
+    # pts = [np.array([0,0,1])]
+    # mic_locs = {1:np.array([0,0,0]), 2:np.array([0.08,0,0]), 3:np.array([-0.08,0,0]), 4:np.array([0,-0.08,0])}
+    # print(get_phase_diffs(pts, mic_locs, 44100))
+
+    # time = np.arange(0, 10, 0.1)
+    # signal2 = np.sin(time/5 * np.pi)
+    # signal1 = np.roll(signal2, -1)
+    # print(find_delta(signal1, signal2))
+    # plt.plot(time, signal1, c = "blue")
+    # plt.plot(time, signal2, c = "red")
+    # plt.show()
 
     time = np.arange(0, 10, 0.1)
-    signal2 = np.sin(time/5 * np.pi)
-    signal1 = np.roll(signal2, -1)
-    print(find_delta(signal1, signal2))
-    plt.plot(time, signal1, c = "blue")
-    plt.plot(time, signal2, c = "red")
+    signal1 = np.sin(time/5 * np.pi)
+    signal2 = np.roll(signal1, 10)
+    signal3 = np.roll(signal1, 10)
+    print(find_delta(signal2, signal1))
+    plt.plot(time, signal1)
+    plt.plot(time, signal2)
     plt.show()

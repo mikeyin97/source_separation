@@ -36,6 +36,7 @@ def lookup(data, phase_diffs, frames):
                 x_corrs.append(xcorr)
         print(expected_phases)
         x_corrs = np.array(x_corrs)
+        
         # compare to sphere
         mid = x_corrs.shape[1] // 2
         curr_loc = None

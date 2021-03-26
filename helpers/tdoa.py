@@ -23,7 +23,7 @@ def solve_implicit_function(data, frames, rate, mic_locs_list, alpha = 0.01, reg
     for f in tqdm.tqdm(range(0, data.shape[1] - frames, frames)):
         grad, phase_diffs = build_implicit_function(curr_guess, data, f, f+frames, reg, rate, mic_locs_list)
         count = 0
-        while np.linalg.norm(grad + reg * curr_guess) >= 0.05 and count <= 3000:
+        while np.linalg.norm(grad + reg * curr_guess) >= 0.03 and count <= 3000:
             grad, phase_diffs = build_implicit_function(curr_guess, data, f, f+frames, reg, rate,  mic_locs_list)
             curr_guess = curr_guess - alpha * (grad + curr_guess * reg)
             count += 1
