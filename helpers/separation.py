@@ -11,7 +11,6 @@ def grad(W, x):
     R_yy = np.matmul(y, y_h)
     #R_yy = np.matmul(np.matmul(W, R_xx), W.H)
     
-    # # if W singular, perturb slightly until nonsingular
     A = np.asmatrix(np.linalg.lstsq(W, np.identity(2), rcond = 1)[0])
 
     E = R_yy - np.diag(np.diag(R_yy))
@@ -21,16 +20,16 @@ def grad(W, x):
 
     alpha = (np.linalg.norm(R_xx))**-2
     grad = alpha * dJ1 + dJ2
-    
+  
     return grad
 
 def grad_descent(W_init, x, mu, reg = 0.01):
     W = W_init
     count = 0
     g = grad(W, x)
-    while np.linalg.norm(g) >= 0.0001:
+    while np.linalg.norm(g) >= 0.00005:
         g = grad(W, x)
-        W = (1-mu*reg) * W - mu*g 
+        W = (1-mu*reg) * W - mu*g
     return W
 
 def real_to_complex(z):      # real vector of length 2n -> complex of length n
@@ -45,7 +44,7 @@ def grad_descent_all_frames(data, frames):
     source2 = []
 
     for i in tqdm.tqdm(range(0, data.shape[1] - frames, frames//4)):
-        frame_data = data[:, i:i+(frames)]
+        frame_data = data[:, i:i+(frames//4)]
         x = fft(frame_data)
         if i == 0:
             W_init = np.random.rand(14) + np.random.rand(14) * 1j
@@ -66,13 +65,12 @@ def grad_descent_all_frames(data, frames):
         W_2 = W_final[1]
         W_1real = np.real(W_1)
         W_2real = np.real(W_2)
-        amp_sum1 = np.sum(np.abs(W_1real))
-        amp_sum2 = np.sum(np.abs(W_2real))
-        W_final = np.array([W_1 / amp_sum1, W_2 / amp_sum2])
+        
+        c1 = np.sqrt(1./np.sum(np.square(W_1real)))
+        c2 = np.sqrt(1./np.sum(np.square(W_2real)))
+
+        W_final = np.array([W_1 * c1, W_2 * c2])
         W_final = np.asmatrix(W_final)
-        print(W_final)
-        
-        
         
         # W_final = np.asmatrix(np.array([[1,0,0,0,0,0,0],[0,1,0,0,0,0,0]]))
 

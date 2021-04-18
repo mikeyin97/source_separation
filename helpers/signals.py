@@ -10,6 +10,7 @@ def find_delta_with_xcorr(signal1, signal2):
     nsamples = signal1.shape[0]
 
     xcorr = signaltools.correlate(signal1, signal2)
+    
     dt = np.arange(1-nsamples, nsamples)
     filtered_xcorr = xcorr[len(xcorr)//2 - 14 : len(xcorr)//2 + 14]
     recovered_time_shift = dt[len(xcorr)//2 - 14 + filtered_xcorr.argmax()]
@@ -23,6 +24,7 @@ def find_delta(signal1, signal2): # signal1 takes place after if +ve
     nsamples = signal1.shape[0]
 
     xcorr = signaltools.correlate(signal1, signal2)
+
     dt = np.arange(1-nsamples, nsamples)
     filtered_xcorr = xcorr[len(xcorr)//2 - 14 : len(xcorr)//2 + 14]
     recovered_time_shift = dt[len(xcorr)//2 - 14 + filtered_xcorr.argmax()]
@@ -66,8 +68,8 @@ if __name__ == "__main__":
 
     time = np.arange(0, 10, 0.1)
     signal1 = np.sin(time/5 * np.pi)
-    signal2 = np.roll(signal1, 10)
-    signal3 = np.roll(signal1, 10)
+    signal2 = np.roll(signal1, 2)
+    signal3 = np.roll(signal1, 2)
     print(find_delta(signal2, signal1))
     plt.plot(time, signal1)
     plt.plot(time, signal2)

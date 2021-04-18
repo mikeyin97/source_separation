@@ -9,6 +9,7 @@ import librosa
 import librosa.display
 import warnings
 
+
 warnings.simplefilter('ignore', wav.WavFileWarning)
 
 mic_locs = {}
@@ -135,29 +136,82 @@ def normalize(mics):
 if __name__ == "__main__":
     # SELECT FOLDER
     folder = "./test/talking/1/"
-    # folder = "./res2/src1/"
-    # folder = "./res2/src2/"
+    # folder = "./res1/src1/"
+    # folder = "./res1/src2/"
     
     # LOAD DATA
+    frames = 2**12
     mics, sample_freq = load_from_path(folder)
+    data = vstack_mics(mics, normalize = True)
     
     # PLOT DATA
-    # plt_wavs(mics, sample_freq, pts = None, sv="src2raw.png")
+    localized_pts = []
+    pts = find_peaks(mics, 0.14, 10000)
+    plt_wavs(mics, sample_freq, pts = pts, sv="init_data.png")
 
 
-    data = vstack_mics(mics, normalize = False)
     pts = fibonacci_sphere(360)
     phase_diffs = get_phase_diffs(pts, mic_locs, sample_freq)
 
-    frames = 2**10
-    locs1 = lookup(data, phase_diffs, frames)
-    plot_with_mics(locs1, mic_locs_list, count = True, sv="initlookup.png")
 
-    locs2 = solve_implicit_function(data, int(frames/4), sample_freq, mic_locs_list)
+    # PRINT FIRST PHASE DIFF
+    # count = 0
+    # for i in phase_diffs:
+    #     if count == 1:
+    #         break
+    #     print(i, phase_diffs[i])
+    #     count += 1
+
+    # locs1 = lookup(data, phase_diffs, int(frames//2))
+    # plot_with_mics(locs1, mic_locs_list, count = True, sv="peak1_lookup.png")
+
+
+    locs2 = solve_implicit_function(data, int(frames//2), sample_freq, mic_locs_list)
     print(sum(locs2) / len(locs2))
-    plot_with_mics(locs2, mic_locs_list, sv="inittdoa.png")
+    plot_with_mics(locs2, mic_locs_list, sv="all_tdoa.png")
     
+    
+
+
+
+    
+    # for mic in tqdm.tqdm(pts):
+    #     for peak in range(len(pts[mic])):
+    #         pk1 = pts[mic][peak][0]
+
+    #         pk1_min = pk1 - frames // 2
+    #         pk1_max = pk1 + frames // 2
+
+    #         new_mics = {}
+    #         for n in mics:
+    #             new_mics[n] = mics[n][int(pk1_min):int(pk1_max)]
+
+
+    #         new_data = vstack_mics(new_mics, normalize = False)
+
+    #         # plt_wavs(new_mics, sample_freq, pts = None, sv = "peak1.png")
+
+            
+    #         # pts = fibonacci_sphere(360)
+    #         # phase_diffs = get_phase_diffs(pts, mic_locs, sample_freq)
+
+    #         # locs1 = lookup(new_data, phase_diffs, int(frames//2))
+    #         # plot_with_mics(locs1, mic_locs_list, count = True, sv="peak1_lookup.png")
+            
+    #         locs2 = solve_implicit_function(new_data, int(frames//2), sample_freq, mic_locs_list)
+    #         print(locs2)
+    #         print(sum(locs2) / len(locs2))
+    #         localized_pts.append(sum(locs2) / len(locs2))
+
+    # plot_with_mics(localized_pts, mic_locs_list, sv="peaks_tdoa.png")
+
+
+
+
+
+    # SPERATION
     # W, A, final_data, source1, source2 = grad_descent_all_frames(data, frames)
+    # print(source1.shape)
     # mic_to_wavs(source1, "./res2/src1")
     # mic_to_wavs(source2, "./res2/src2")
     # final_res_to_wavs(final_data, "./res2/")
