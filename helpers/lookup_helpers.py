@@ -25,15 +25,21 @@ def lookup(data, phase_diffs, frames):
         count = 0
 
         expected_phases = []
-
+        skip = None
         for i in range(0, frame_data.shape[0] - 1):
             for j in range(i+1, frame_data.shape[0]):
                 x_1 = np.squeeze(np.array(frame_data[i]).T)
                 x_2 = np.squeeze(np.array(frame_data[j]).T)
-                xcorr, expected_phase = find_delta_with_xcorr(x_1, x_2)
+                skip, xcorr, expected_phase = find_delta_with_xcorr(x_1, x_2)
+                if skip == True:
+                    continue
 
                 expected_phases.append(expected_phase)
                 x_corrs.append(xcorr)
+            if skip == True:
+                continue
+        if skip == True:
+            continue
         print(expected_phases)
         x_corrs = np.array(x_corrs)
         

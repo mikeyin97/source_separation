@@ -8,17 +8,15 @@ def build_implicit_function(pos, data, start, end, reg, sampling_rate, mic_locs_
     c = 343 
     phase_diffs = []
     
-    
-    phases = np.array((2.5714285714285694, 1.2463679718963614, -1.323518514032956, -2.571428571428579, -1.323518514032956, 1.2463679718963614, -1.325060599532208, -3.8949470854615256, -5.142857142857149, -3.8949470854615256, -1.325060599532208, -2.5698864859293176, -3.8177965433249406, -2.5698864859293176, 0.0, -1.247910057395623, 0.0, 2.5698864859293176, 1.247910057395623, 3.8177965433249406, 2.5698864859293176))
     count = 0
 
     # r = np.random.randint(0, data.shape[0] - 1)
     for i in range(0, data.shape[0]-1):
         for j in range(i+1, data.shape[0]):
            
-            # phase_diff = find_delta(data[i, start:end].T, data[j, start:end].T)
-
-            phase_diff = phases[count]
+            skip, phase_diff = find_delta(data[i, start:end].T, data[j, start:end].T)
+            if skip == True:
+                continue
             count += 1
 
 
@@ -26,26 +24,28 @@ def build_implicit_function(pos, data, start, end, reg, sampling_rate, mic_locs_
             delta = (c) * (phase_diff) / sampling_rate
             f += hyperboloid_gradient(pos[0],pos[1],pos[2],mic_locs_list[i],mic_locs_list[j],delta)
     # punish large values
-    f += 0.01/np.linalg.norm(pos)
+    # print(phase_diffs)
+    f += 0.001/np.linalg.norm(pos)
     return f, phase_diffs
 
-def solve_implicit_function(data, frames, rate, mic_locs_list, alpha = 0.01, reg = 0.01):
+def solve_implicit_function(data, frames, rate, mic_locs_list, alpha = 0.05, reg = 0.01):
     ests = []
     curr_guess = np.random.rand(3)
     for f in tqdm.tqdm(range(0, data.shape[1] - frames, frames)):
         grad, phase_diffs = build_implicit_function(curr_guess, data, f, f+frames, reg, rate, mic_locs_list)
         count = 0
-        while np.linalg.norm(grad + reg * curr_guess) >= 0.01 and count <= 3000:
+        while np.linalg.norm(grad + reg * curr_guess) >= 0.08 and count <= 1000:
             grad, phase_diffs = build_implicit_function(curr_guess, data, f, f+frames, reg, rate,  mic_locs_list)
             curr_guess = curr_guess - alpha * (grad + curr_guess * reg)
             count += 1
+            # print(np.linalg.norm(grad + reg * curr_guess))
            
         curr_guess = curr_guess
         # nromalize
-        curr_guess = curr_guess / np.linalg.norm(curr_guess)
-        ests.append(curr_guess)
+        # curr_guess = curr_guess / np.linalg.norm(curr_guess)
+        ests.append(curr_guess / np.linalg.norm(curr_guess))
         print(curr_guess)
-        map_plot(data, f, f+frames, rate, mic_locs_list, curr_guess)
+        # map_plot(data, f, f+frames, rate, mic_locs_list, curr_guess)
     return ests
 
 
@@ -77,15 +77,14 @@ def map_plot(data, start, end, sampling_rate, mic_locs_list, curr_guess):
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111, projection='3d')
     
-
-    phases = np.array((2.5714285714285694, 1.2463679718963614, -1.323518514032956, -2.571428571428579, -1.323518514032956, 1.2463679718963614, -1.325060599532208, -3.8949470854615256, -5.142857142857149, -3.8949470854615256, -1.325060599532208, -2.5698864859293176, -3.8177965433249406, -2.5698864859293176, 0.0, -1.247910057395623, 0.0, 2.5698864859293176, 1.247910057395623, 3.8177965433249406, 2.5698864859293176))
     count = 0
 
 
     for i in range(0,1): 
         for j in range(i+1, len(data)):
-            #phase_diff = find_delta(data[i, start:end].T, data[j, start:end].T)
-            phase_diff = phases[count]
+            skip, phase_diff = find_delta(data[i, start:end].T, data[j, start:end].T)
+            if skip == True:
+                continue
             count += 1
 
 

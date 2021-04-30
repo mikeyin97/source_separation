@@ -18,7 +18,11 @@ def grad(W, x):
     dJ1 = 4*np.matmul(np.matmul(E, W), R_xx)
     dJ2 = 2*np.matmul((np.matmul(W, A) - np.identity(W.shape[0])), A.H)
 
-    alpha = (np.linalg.norm(R_xx))**-2
+    if (np.linalg.norm(R_xx)) == 0:
+        print("HI")
+        alpha = 1
+    else:
+        alpha = (np.linalg.norm(R_xx))**-2
     grad = alpha * dJ1 + dJ2
   
     return grad
@@ -42,13 +46,12 @@ def grad_descent_all_frames(data, frames):
     final_data = []
     source1 = []
     source2 = []
-
     for i in tqdm.tqdm(range(0, data.shape[1] - frames, frames//4)):
         frame_data = data[:, i:i+(frames//4)]
         x = fft(frame_data)
         if i == 0:
-            W_init = np.random.rand(14) + np.random.rand(14) * 1j
-            W_init = W_init.reshape((2, 7))
+            W_init = np.random.rand(2*data.shape[0]) + np.random.rand(2*data.shape[0]) * 1j
+            W_init = W_init.reshape((2, data.shape[0]))
 
             x = np.asmatrix(x)
             W_init = np.asmatrix(W_init)
@@ -86,10 +89,10 @@ def grad_descent_all_frames(data, frames):
         
         A1 = np.copy(A)
         A2 = np.copy(A)
-        A1[:, 1] = np.zeros([1,7])
-        A2[:, 0] = np.zeros([1,7])
-        source1.append(np.matmul(A1, source))
-        source2.append(np.matmul(A2, source))
+        A1[:, 1] = np.zeros([1,data.shape[0]])
+        A2[:, 0] = np.zeros([1,data.shape[0]])
+        source1.append(np.real(np.matmul(A1, source)))
+        source2.append(np.real(np.matmul(A2, source)))
         
         final_data.append(source)
     return W_final, A, final_data, source1, source2
