@@ -78,7 +78,7 @@ def plot_with_mics(locs, mics_loc_list, count = False, sv = None, avg = None):
     if count:
         loc_counter = Counter(locs)
         for i in loc_counter:
-            if i is not None:
+            if i is not None and loc_counter[i] >= 5:
                 ax.scatter(i[0], i[1], i[2], c = "blue", s = 10*np.log(loc_counter[i]))
     else:
         loc_counter = locs
@@ -192,17 +192,17 @@ if __name__ == "__main__":
     plt_wavs(mics, sample_freq, pts = None, sv="music_plt.png")
 
     # LOOKUP
-    # pts = fibonacci_sphere(360)
-    # phase_diffs = get_phase_diffs(pts, mic_locs, sample_freq)
+    pts = fibonacci_sphere(360)
+    phase_diffs = get_phase_diffs(pts, mic_locs, sample_freq)
 
-    # locs1 = lookup(data, phase_diffs, int(frames//2))
-    # plot_with_mics(locs1, mic_locs_list, count = True, sv="=new_lookup.png")
+    locs1 = lookup(data, phase_diffs, int(frames)*4)
+    plot_with_mics(locs1, mic_locs_list, count = True, sv="=music_lookup.png")
 
 
     # TDOA
-    locs2 = solve_implicit_function(data, int(frames//2), sample_freq, mic_locs_list)
-    print(sum(locs2) / len(locs2))
-    plot_with_mics(locs2, mic_locs_list, sv="music_tdoa.png", avg = 25)
+    # locs2 = solve_implicit_function(data, int(frames//2), sample_freq, mic_locs_list)
+    # print(sum(locs2) / len(locs2))
+    # plot_with_mics(locs2, mic_locs_list, sv="music_tdoa.png", avg = 25)
     
     
 

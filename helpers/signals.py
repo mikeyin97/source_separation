@@ -16,7 +16,7 @@ def find_delta_with_xcorr(signal1, signal2):
     dt = np.arange(1-nsamples, nsamples)
     filtered_xcorr = xcorr[len(xcorr)//2 - 20 : len(xcorr)//2 + 20]
     recovered_time_shift = dt[len(xcorr)//2 - 20 + filtered_xcorr.argmax()]
-    return False, filtered_xcorr, recovered_time_shift
+    return False, xcorr, recovered_time_shift
 
 def find_delta(signal1, signal2): # signal1 takes place after if +ve
     if signal1.std() == 0 or signal2.std() == 0:
