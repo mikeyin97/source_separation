@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tqdm
 from .signals import *
+import scipy.stats
 
 def fibonacci_sphere(samples=1):
     points = []
@@ -16,8 +17,10 @@ def fibonacci_sphere(samples=1):
         points.append((x, y, z))
     return points
 
-def lookup(data, phase_diffs, frames):
+def lookup(data, phase_diffs, frames, num_sources = 1):
     curr_locs = []
+    second_locs = []
+    third_locs = []
     for f in tqdm.tqdm(range(0, data.shape[1] - frames, frames//4)):
         frame_data = data[:, f:f+(frames)]
         phase_diff = []
@@ -45,6 +48,7 @@ def lookup(data, phase_diffs, frames):
         
         # compare to sphere
         mid = x_corrs.shape[1] // 2
+        phase_sums = {}
         curr_loc = None
         max_sum = 0
         for loc in phase_diffs:
@@ -54,11 +58,75 @@ def lookup(data, phase_diffs, frames):
                 index = mid + indices[j]
                 val = interpolate(x_corrs[j], index)
                 curr_sum += val
-            if curr_sum > max_sum:
-                max_sum = curr_sum
-                curr_loc = loc         
+            phase_sums[loc] = curr_sum
+        
+
+        curr_loc = max(phase_sums, key=phase_sums.get)
+        # print(phase_diffs[curr_loc])
+        # print(x_corrs.shape)
+
+        for r in range(x_corrs.shape[0]):
+            idx1 = int(phase_diffs[curr_loc][r])
+            for i in range(-5, 5):
+                # to_sub = min(1-scipy.stats.norm(0, 3).pdf(i),scipy.stats.norm(0, 3).pdf(i)) 
+                if i == 0:
+                    x_corrs[r][mid+idx1+i] = 0
+                else:
+                    x_corrs[r][mid+idx1+i] = 0
+
+        
+        mid = x_corrs.shape[1] // 2
+        phase_sums = {}
+        second_loc = None
+        max_sum = 0
+        for loc in phase_diffs:
+            curr_sum = 0
+            indices = phase_diffs[loc]
+            for j in range(len(indices)):
+                index = mid + indices[j]
+                val = interpolate(x_corrs[j], index)
+                curr_sum += val
+            phase_sums[loc] = curr_sum
+        
+        second_loc = max(phase_sums, key=phase_sums.get)
+
+        print(phase_sums[(-0.8575468969128732, -0.50974930362117, -0.06905770813482051)])
+        print(phase_sums[(second_loc)])
+
+        # for r in range(x_corrs.shape[0]):
+        #     idx1 = int(phase_diffs[second_loc][r])
+        #     idx2 = int(phase_diffs[second_loc][r]) + 1
+        #     x_corrs[r][mid+idx1] = 0
+        #     x_corrs[r][mid+idx2] = 0
+
+        
+        # mid = x_corrs.shape[1] // 2
+        # phase_sums = {}
+        # second_loc = None
+        # max_sum = 0
+        # for loc in phase_diffs:
+        #     curr_sum = 0
+        #     indices = phase_diffs[loc]
+        #     for j in range(len(indices)):
+        #         index = mid + indices[j]
+        #         val = interpolate(x_corrs[j], index)
+        #         curr_sum += val
+        #     phase_sums[loc] = curr_sum
+        
+        # third_loc = max(phase_sums, key=phase_sums.get)
+
+
+
+
+
+
+
+        print(curr_loc)
+        print(second_loc)
         curr_locs.append(curr_loc)
-    return curr_locs
+        second_locs.append(second_loc)
+        # third_locs.append(third_loc)
+    return curr_locs, second_locs
 
 if __name__ == "__main__":
     pts = fibonacci_sphere(360)

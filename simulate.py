@@ -16,7 +16,7 @@ fs, audio2 = wavfile.read("inputs/piano.wav")
 
 audio1 = audio1[1000000:2000000, :1]
 audio1 = audio1.reshape(audio1.shape[0])
-audio1 = audio1
+audio1 = audio1/5
 
 audio2 = audio2[1000000:2000000, :1]
 audio2 = audio2.reshape(audio1.shape[0])

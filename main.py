@@ -5,6 +5,12 @@ from helpers.separation import *
 from helpers.signals import *
 from helpers.tdoa import *
 from collections import Counter
+from cmath import e,pi,sin,cos
+import numpy as np
+import scipy.signal
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 import librosa
 import librosa.display
 import warnings
@@ -41,13 +47,13 @@ def load_from_path(folder):
     # mics["mic6"], sample_rate = librosa.load(folder + "Audio Track-6.wav")
     # mics["mic7"], sample_rate = librosa.load(folder + "Audio Track-7.wav")
 
-    mics["mic1"], sample_rate = librosa.load(folder + "mic1_music.wav")
-    mics["mic2"], sample_rate = librosa.load(folder + "mic2_music.wav")
-    mics["mic3"], sample_rate = librosa.load(folder + "mic3_music.wav")
-    mics["mic4"], sample_rate = librosa.load(folder + "mic4_music.wav")
-    mics["mic5"], sample_rate = librosa.load(folder + "mic5_music.wav")
-    mics["mic6"], sample_rate = librosa.load(folder + "mic6_music.wav")
-    mics["mic7"], sample_rate = librosa.load(folder + "mic7_music.wav")
+    mics["mic1"], sample_rate = librosa.load(folder + "mic1_sitar.wav")
+    mics["mic2"], sample_rate = librosa.load(folder + "mic2_sitar.wav")
+    mics["mic3"], sample_rate = librosa.load(folder + "mic3_sitar.wav")
+    mics["mic4"], sample_rate = librosa.load(folder + "mic4_sitar.wav")
+    mics["mic5"], sample_rate = librosa.load(folder + "mic5_sitar.wav")
+    mics["mic6"], sample_rate = librosa.load(folder + "mic6_sitar.wav")
+    mics["mic7"], sample_rate = librosa.load(folder + "mic7_sitar.wav")
     return mics, sample_rate
 
 def load_from_wav(f):
@@ -186,18 +192,22 @@ if __name__ == "__main__":
     mics = new_mics
     data = vstack_mics(mics, normalize = True)
     
-    # PLOT DATA
-    localized_pts = []
-    pts = find_peaks(mics, 0.14, 10000)
-    plt_wavs(mics, sample_freq, pts = None, sv="music_plt.png")
+    # # PLOT DATA
+    # localized_pts = []
+    # pts = find_peaks(mics, 0.14, 10000)
+    # plt_wavs(mics, sample_freq, pts = None, sv="music_plt.png")
 
-    # LOOKUP
-    pts = fibonacci_sphere(360)
-    phase_diffs = get_phase_diffs(pts, mic_locs, sample_freq)
+    # # LOOKUP
+    # pts = fibonacci_sphere(360)
+    # phase_diffs = get_phase_diffs(pts, mic_locs, sample_freq)
 
-    locs1 = lookup(data, phase_diffs, int(frames)*4)
-    plot_with_mics(locs1, mic_locs_list, count = True, sv="=music_lookup.png")
+    # locs1, locs2 = lookup(data, phase_diffs, int(frames)*2, num_sources = 2)
+    # plot_with_mics(locs1 + locs2, mic_locs_list, count = True, sv="music_lookup_both.png")
 
+    print(data.shape)
+
+
+    # plot_with_mics(locs2, mic_locs_list, count = True, sv="music_lookup2.png")
 
     # TDOA
     # locs2 = solve_implicit_function(data, int(frames//2), sample_freq, mic_locs_list)
@@ -251,7 +261,99 @@ if __name__ == "__main__":
     # mic_to_wavs(source2, "./res/src2")
     # final_res_to_wavs(final_data, "./res/")
 
+    N=2
+    M=7
+    p=data.shape[1]
+    fc=44100
+    fs=44100
 
+    # s = np.zeros((N,p),dtype=complex)
+    # for t in np.arange(start=1,stop=p+1):
+    #     t_val = t/fs
+    #     amp = np.random.multivariate_normal(mean=np.zeros(N),cov=1*np.diag(np.ones(N)))
+    #     s[:,t-1] = np.exp(1j*2*pi*fc*t_val)*amp
+    # print("s=\n",s.shape)
+    
+    doa = np.array([20,50,85,110,145])*pi/180
+
+    c = 3e8
+    d = 150
+
+    # #Steering Vector as a function of theta
+    def a(theta):
+        a1 = np.exp(-1j*2*pi*fc*d*(np.cos(theta)/c) * np.arange(M) )
+        return a1.reshape((M,1))
+    # #print(a(2))
+
+    # A = np.zeros((M,N),dtype=complex)
+    # for i in range(N):
+    #     A[:,i] = a(doa[i])[:,0]
+
+    # print("A=\n",A.shape)
+    
+    # noise = np.random.multivariate_normal(mean=np.zeros(M),cov=np.diag(np.ones(M)),size=p).T
+    X = data
+    # X = (A@s + noise)
+    print("X=\n",X.shape)
+
+    S = X@X.conj().T/p
+
+    print("emp cov = ",S.shape)
+
+    #finding eigen values and eigen vectors
+    eigvals, eigvecs = np.linalg.eig(S)
+    eigvals = eigvals.real
+
+    #finding norm of eigvals so that they can be sorted in decreasing order
+    eignorms = np.abs(eigvals)
+
+    print("eigvals=",eigvals)
+
+    #sorting eig vals and eig vecs in decreasing order of eig vals
+
+    idx = eignorms.argsort()[::-1]   
+    eignorms = eignorms[idx]
+    eigvals = eigvals[idx]
+    eigvecs = eigvecs[:,idx]
+
+    # idx = eigvals.argsort()[::-1]   
+    # eignorms = eignorms[idx]
+    # eigvals = eigvals[idx]
+    # eigvecs = eigvecs[:,idx]
+
+    # print("eigvals=",eigvals)
+    # print("eigvecs=\n",eigvecs)
+
+    print(np.abs(S@eigvecs[:,2]/eigvecs[:,2]))
+
+    fig, ax = plt.subplots(figsize=(18,6))
+    ax.scatter(np.arange(N),eigvals[:N],label="N EigVals from Source")
+    ax.scatter(np.arange(N,M),eigvals[N:],label="M-N EigVals from Noise")
+    plt.legend()
+
+    Us, Un = eigvecs[:,:N], eigvecs[:,N:]
+    print(Us.shape)
+    print(Un.shape)
+
+    def P_MU(theta):
+#     print(a(theta).conj().T.shape)
+#     print(Us.shape)
+#     print(np.linalg.norm(a(theta).conj().T@Un))
+        return(1/(a(theta).conj().T@Un@Un.conj().T@a(theta)))[0,0]
+        
+    print(P_MU(2))
+
+    theta_vals = np.arange(0,181,1)
+    P_MU_vals = np.array([P_MU(val*pi/180.0) for val in theta_vals]).real
+    print(P_MU_vals.shape)
+
+    print("doas=",doa*180/pi)
+
+    fig, ax = plt.subplots(figsize=(18,6))
+    plt.plot(np.abs(theta_vals), P_MU_vals)
+    plt.xticks(np.arange(0, 181, 10))
+    plt.grid()
+    plt.show()
 
 
 
