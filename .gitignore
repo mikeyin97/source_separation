@@ -30,6 +30,8 @@ MANIFEST
 res*/
 inputs/
 outputs/
+batch_*
+out_*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
